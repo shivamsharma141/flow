@@ -1,12 +1,11 @@
 "use client";
 import { io } from "socket.io-client";
 import { useUser } from "@clerk/nextjs";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./chats.module.css";
 
-export default function Chat() {
-
+function ChatInner() {
   const { user } = useUser();
   const searchParams = useSearchParams();
   const socketRef = useRef(null);
@@ -20,16 +19,11 @@ export default function Chat() {
   const textareaRef = useRef(null);
   const [users, setUsers] = useState([]);
 
-  // Socket initialize
   useEffect(() => {
     socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000");
-
     socketRef.current.on("connect", () => setSocketReady(true));
     if (socketRef.current.connected) setSocketReady(true);
-
-    return () => {
-      socketRef.current?.disconnect();
-    };
+    return () => { socketRef.current?.disconnect(); };
   }, []);
 
   useEffect(() => {
@@ -50,9 +44,7 @@ export default function Chat() {
   useEffect(() => {
     if (!socketRef.current) return;
     socketRef.current.on("online-users", (onlineIds) => {
-      setUsers((prev) =>
-        prev.map((u) => ({ ...u, online: onlineIds.includes(u.id) }))
-      );
+      setUsers((prev) => prev.map((u) => ({ ...u, online: onlineIds.includes(u.id) })));
     });
     return () => socketRef.current?.off("online-users");
   }, [socketReady]);
@@ -61,9 +53,7 @@ export default function Chat() {
     if (!socketRef.current) return;
     socketRef.current.on("receive-message", (newMsg) => {
       setSelectedUser((prev) => {
-        if (!prev) {
-          return { id: newMsg.senderid, name: newMsg.sendername, image: newMsg.senderimage };
-        }
+        if (!prev) return { id: newMsg.senderid, name: newMsg.sendername, image: newMsg.senderimage };
         return prev;
       });
       setUsers((prev) => {
@@ -78,10 +68,7 @@ export default function Chat() {
           time: getTime(),
         }];
       });
-      setMessages((prev) => [
-        ...prev,
-        { text: newMsg.message, sender: "them", time: getTime() }
-      ]);
+      setMessages((prev) => [...prev, { text: newMsg.message, sender: "them", time: getTime() }]);
     });
     return () => socketRef.current?.off("receive-message");
   }, [socketReady]);
@@ -90,53 +77,32 @@ export default function Chat() {
     if (!selectedUser || !user || !socketReady || !socketRef.current) return;
     socketRef.current.emit("load-messages", { userId1: user.id, userId2: selectedUser.id });
     socketRef.current.on("messages-loaded", (oldMessages) => {
-      setMessages(
-        oldMessages.map((m) => ({
-          text: m.message,
-          sender: m.senderid === user.id ? "me" : "them",
-          time: new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        }))
-      );
+      setMessages(oldMessages.map((m) => ({
+        text: m.message,
+        sender: m.senderid === user.id ? "me" : "them",
+        time: new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      })));
     });
     return () => socketRef.current?.off("messages-loaded");
   }, [selectedUser?.id, user?.id, socketReady]);
 
-  // Reload pe conversations load karo
   useEffect(() => {
     if (!user) return;
-
     fetch("/api/get-conversations")
       .then((res) => res.json())
       .then((data) => {
         if (!data.success) return;
-
         setUsers((prev) => {
           const updated = [...prev];
-
           data.conversations.forEach((conv) => {
             const exists = updated.find((u) => u.id === conv.userId);
-
             if (!exists) {
-              updated.push({
-                id:          conv.userId,
-                name:        conv.name,
-                image:       conv.image,
-                online:      false,
-                lastMessage: conv.lastMessage,
-                time:        conv.time,
-              });
+              updated.push({ id: conv.userId, name: conv.name, image: conv.image, online: false, lastMessage: conv.lastMessage, time: conv.time });
             } else {
               const idx = updated.findIndex((u) => u.id === conv.userId);
-              updated[idx] = {
-                ...updated[idx],
-                name:        conv.name,
-                image:       conv.image,
-                lastMessage: conv.lastMessage,
-                time:        conv.time,
-              };
+              updated[idx] = { ...updated[idx], name: conv.name, image: conv.image, lastMessage: conv.lastMessage, time: conv.time };
             }
           });
-
           return updated;
         });
       });
@@ -154,9 +120,7 @@ export default function Chat() {
     }
   }, [message]);
 
-  const getTime = () => {
-    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  const getTime = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   const sendMessage = () => {
     if (!message.trim() || !selectedUser || !user || !socketRef.current) return;
@@ -169,26 +133,17 @@ export default function Chat() {
     });
     const newMsg = { text: message, sender: "me", time: getTime() };
     setMessages((prev) => [...prev, newMsg]);
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === selectedUser.id
-          ? { ...u, lastMessage: message, time: newMsg.time }
-          : u
-      )
-    );
+    setUsers((prev) => prev.map((u) => u.id === selectedUser.id ? { ...u, lastMessage: message, time: newMsg.time } : u));
     setMessage("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
-  const filteredUsers = users.filter((u) =>
-    u.name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = users.filter((u) => u.name?.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className={styles.container}>
       <div className={`${styles.sidebar} ${selectedUser ? styles.hideMobile : ""}`}>
         <h2 className={styles.title}>Chats</h2>
-
         <input
           type="text"
           placeholder="Search chats..."
@@ -196,7 +151,6 @@ export default function Chat() {
           onChange={(e) => setSearch(e.target.value)}
           className={styles.searchBar}
         />
-
         {filteredUsers.map((u) => (
           <div
             key={u.id}
@@ -210,22 +164,16 @@ export default function Chat() {
               }
               {u.online && <span className={styles.onlineDot}></span>}
             </div>
-
             <div className={styles.userContent}>
               <div className={styles.topRow}>
                 <span className={styles.userName}>{u.name}</span>
                 <span className={styles.time}>{u.time}</span>
               </div>
-              <div className={styles.lastMessage}>
-                {u.lastMessage || "Start a conversation"}
-              </div>
+              <div className={styles.lastMessage}>{u.lastMessage || "Start a conversation"}</div>
             </div>
           </div>
         ))}
-
-        {filteredUsers.length === 0 && (
-          <p className={styles.noResults}>No chats found</p>
-        )}
+        {filteredUsers.length === 0 && <p className={styles.noResults}>No chats found</p>}
       </div>
 
       <div className={`${styles.chatArea} ${!selectedUser ? styles.hideMobile : ""}`}>
@@ -274,7 +222,6 @@ export default function Chat() {
             </div>
           </>
         )}
-
         {!selectedUser && (
           <div className={styles.emptyChat}>
             <p>👈 Select a chat to start messaging</p>
@@ -282,5 +229,13 @@ export default function Chat() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Chat() {
+  return (
+    <Suspense fallback={<div style={{ color: "white", display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>Loading...</div>}>
+      <ChatInner />
+    </Suspense>
   );
 }
