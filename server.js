@@ -10,7 +10,7 @@ const server = http.createServer();
 
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: ["https://flowchats.tech","https://www.flowchats.tech", "http://localhost:3000"],
         methods: ["GET", "POST"]  
     }
 })
