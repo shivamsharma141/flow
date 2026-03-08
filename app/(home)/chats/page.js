@@ -5,12 +5,11 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./chats.module.css";
 
-const socket = io("http://localhost:4000");
-
 export default function Chat() {
 
   const { user } = useUser();
   const searchParams = useSearchParams();
+  const socketRef = useRef(null);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState("");
@@ -21,10 +20,16 @@ export default function Chat() {
   const textareaRef = useRef(null);
   const [users, setUsers] = useState([]);
 
+  // Socket initialize
   useEffect(() => {
-    socket.on("connect", () => setSocketReady(true));
-    if (socket.connected) setSocketReady(true);
-    return () => socket.off("connect");
+    socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000");
+
+    socketRef.current.on("connect", () => setSocketReady(true));
+    if (socketRef.current.connected) setSocketReady(true);
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -38,21 +43,23 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
-    socket.emit("user-online", user.id);
-  }, [user?.id]);
+    if (!user || !socketRef.current) return;
+    socketRef.current.emit("user-online", user.id);
+  }, [user?.id, socketReady]);
 
   useEffect(() => {
-    socket.on("online-users", (onlineIds) => {
+    if (!socketRef.current) return;
+    socketRef.current.on("online-users", (onlineIds) => {
       setUsers((prev) =>
         prev.map((u) => ({ ...u, online: onlineIds.includes(u.id) }))
       );
     });
-    return () => socket.off("online-users");
-  }, []);
+    return () => socketRef.current?.off("online-users");
+  }, [socketReady]);
 
   useEffect(() => {
-    socket.on("receive-message", (newMsg) => {
+    if (!socketRef.current) return;
+    socketRef.current.on("receive-message", (newMsg) => {
       setSelectedUser((prev) => {
         if (!prev) {
           return { id: newMsg.senderid, name: newMsg.sendername, image: newMsg.senderimage };
@@ -76,13 +83,13 @@ export default function Chat() {
         { text: newMsg.message, sender: "them", time: getTime() }
       ]);
     });
-    return () => socket.off("receive-message");
-  }, []);
+    return () => socketRef.current?.off("receive-message");
+  }, [socketReady]);
 
   useEffect(() => {
-    if (!selectedUser || !user || !socketReady) return;
-    socket.emit("load-messages", { userId1: user.id, userId2: selectedUser.id });
-    socket.on("messages-loaded", (oldMessages) => {
+    if (!selectedUser || !user || !socketReady || !socketRef.current) return;
+    socketRef.current.emit("load-messages", { userId1: user.id, userId2: selectedUser.id });
+    socketRef.current.on("messages-loaded", (oldMessages) => {
       setMessages(
         oldMessages.map((m) => ({
           text: m.message,
@@ -91,53 +98,49 @@ export default function Chat() {
         }))
       );
     });
-    return () => socket.off("messages-loaded");
+    return () => socketRef.current?.off("messages-loaded");
   }, [selectedUser?.id, user?.id, socketReady]);
 
-
-
   // Reload pe conversations load karo
-useEffect(() => {
-  if (!user) return;
+  useEffect(() => {
+    if (!user) return;
 
-  fetch("/api/get-conversations")
-    .then((res) => res.json())
-    .then((data) => {
-      if (!data.success) return;
+    fetch("/api/get-conversations")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success) return;
 
-      setUsers((prev) => {
-        const updated = [...prev];
+        setUsers((prev) => {
+          const updated = [...prev];
 
-        data.conversations.forEach((conv) => {
-          const exists = updated.find((u) => u.id === conv.userId);
+          data.conversations.forEach((conv) => {
+            const exists = updated.find((u) => u.id === conv.userId);
 
-          if (!exists) {
-            // Naya user add karo
-            updated.push({
-              id:          conv.userId,
-              name:        conv.name,
-              image:       conv.image,
-              online:      false,
-              lastMessage: conv.lastMessage,
-              time:        conv.time,
-            });
-          } else {
-            // Already hai toh last message update karo
-            const idx = updated.findIndex((u) => u.id === conv.userId);
-            updated[idx] = {
-              ...updated[idx],
-              name:        conv.name,
-              image:       conv.image,
-              lastMessage: conv.lastMessage,
-              time:        conv.time,
-            };
-          }
+            if (!exists) {
+              updated.push({
+                id:          conv.userId,
+                name:        conv.name,
+                image:       conv.image,
+                online:      false,
+                lastMessage: conv.lastMessage,
+                time:        conv.time,
+              });
+            } else {
+              const idx = updated.findIndex((u) => u.id === conv.userId);
+              updated[idx] = {
+                ...updated[idx],
+                name:        conv.name,
+                image:       conv.image,
+                lastMessage: conv.lastMessage,
+                time:        conv.time,
+              };
+            }
+          });
+
+          return updated;
         });
-
-        return updated;
       });
-    });
-}, [user?.id]);
+  }, [user?.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -156,8 +159,8 @@ useEffect(() => {
   };
 
   const sendMessage = () => {
-    if (!message.trim() || !selectedUser || !user) return;
-    socket.emit("send-message", {
+    if (!message.trim() || !selectedUser || !user || !socketRef.current) return;
+    socketRef.current.emit("send-message", {
       senderid: user.id,
       receiverid: selectedUser.id,
       message: message,
@@ -177,9 +180,8 @@ useEffect(() => {
     if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
-  // Search filter
   const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
+    u.name?.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -187,7 +189,6 @@ useEffect(() => {
       <div className={`${styles.sidebar} ${selectedUser ? styles.hideMobile : ""}`}>
         <h2 className={styles.title}>Chats</h2>
 
-        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search chats..."
@@ -205,7 +206,7 @@ useEffect(() => {
             <div className={styles.avatarWrapper}>
               {u.image
                 ? <img src={u.image} className={styles.avatarImg} alt="profile" />
-                : <div className={styles.avatar}>{u.name.charAt(0)}</div>
+                : <div className={styles.avatar}>{u.name?.charAt(0)}</div>
               }
               {u.online && <span className={styles.onlineDot}></span>}
             </div>
@@ -235,7 +236,7 @@ useEffect(() => {
               <div className={styles.avatarWrapper}>
                 {selectedUser.image
                   ? <img src={selectedUser.image} className={styles.headerImg} alt="profile" />
-                  : <div className={styles.avatarSmall}>{selectedUser.name.charAt(0)}</div>
+                  : <div className={styles.avatarSmall}>{selectedUser.name?.charAt(0)}</div>
                 }
                 {selectedUser.online && <span className={styles.onlineDot}></span>}
               </div>
