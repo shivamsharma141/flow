@@ -18,6 +18,7 @@ const io = new Server(server, {
 connectionDB();
 
 let onlineuser = {};
+const PORT = process.env.PORT || 4000;
 
 io.on("connection", (socket) => {
     console.log(" User connected, socket id:", socket.id)
@@ -87,6 +88,6 @@ io.on("connection", (socket) => {
 
 })
 
-server.listen(4000, () => {
-    console.log(" Server chal raha hai port 4000 pe!")
+server.listen(PORT, () => {
+    console.log(`server is running on the port ${PORT}`)
 })
