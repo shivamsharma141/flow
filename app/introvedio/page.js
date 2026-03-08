@@ -12,7 +12,7 @@ export default function IntroPage() {
     const t2 = setTimeout(() => setStep(2), 800);
     const t3 = setTimeout(() => setStep(3), 1600);
     const t4 = setTimeout(() => setStep(4), 2400);
-    const t5 = setTimeout(() => router.push("/dashboard"), 5000);
+    const t5 = setTimeout(() => router.push("/signup"), 5000);
 
     return () => {
       clearTimeout(t1);
