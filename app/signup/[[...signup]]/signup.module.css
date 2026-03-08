@@ -1,0 +1,175 @@
+.wrapper {
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background: #000;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.topLogoContainer {
+  padding: 25px 40px;
+}
+
+.topLogo {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #ffffff;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 10px rgba(255,255,255,0.3),
+      0 0 20px rgba(139,92,246,0.2);
+  }
+  to {
+    text-shadow:
+      0 0 20px rgba(255,255,255,0.7),
+      0 0 40px rgba(139,92,246,0.5),
+      0 0 80px rgba(139,92,246,0.25),
+      0 0 120px rgba(139,92,246,0.1);
+  }
+}
+
+
+.container {
+  flex: 1;
+  display: flex;
+}
+
+.left {
+  flex: 1;
+  padding: 80px;
+  margin-bottom: 20%;
+  display: flex;
+  align-items: center;
+}
+
+.content {
+  max-width: 580px;
+}
+
+.content h1 {
+  font-size: clamp(32px, 4vw, 54px);
+  margin-bottom: 25px;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.content p {
+  font-size: clamp(15px, 2vw, 18px);
+  color: #9ca3af;
+  line-height: 1.8;
+  margin-bottom: 35px;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px;
+  width: 100%;
+}
+
+.signupBox {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 18px;
+  background: transparent;
+}
+
+@media (max-width: 1024px) {
+
+  .left {
+    padding: 60px 40px;
+  }
+
+  .right {
+    padding: 40px;
+  }
+
+  .signupBox {
+    max-width: 380px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .container {
+    flex-direction: column;
+  }
+
+  .right {
+    order: 1;
+    padding: 40px 20px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .signupBox {
+    max-width: 420px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .left {
+    order: 2;
+    padding: 40px 25px;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .topLogoContainer {
+    padding: 20px;
+  }
+
+  .topLogo {
+    font-size: 24px;
+  }
+
+  .content h1 {
+    font-size: 22px;
+  }
+
+  .content p {
+    font-size: 14px;
+  }
+
+  .signupBox {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+
+  .right {
+    padding: 25px 15px;
+  }
+
+  .content h1 {
+    font-size: 20px;
+  }
+
+  .content p {
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,146 @@
+.wrapper {
+  min-height: 100vh;
+  background: #000;
+  font-family: 'Inter', sans-serif;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.topLogoContainer {
+  padding: 25px 40px;
+}
+
+.topLogo {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  letter-spacing: 4px;
+  color: #ffffff;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+
+@keyframes glow {
+  from {
+    text-shadow:
+      0 0 10px rgba(255,255,255,0.3),
+      0 0 20px rgba(139,92,246,0.2);
+  }
+  to {
+    text-shadow:
+      0 0 20px rgba(255,255,255,0.7),
+      0 0 40px rgba(139,92,246,0.5),
+      0 0 80px rgba(139,92,246,0.25),
+      0 0 120px rgba(139,92,246,0.1);
+  }
+}
+
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap; /* 🔥 important fix */
+}
+
+.left,
+.right {
+  flex: 1 1 50%; /* 🔥 better flex control */
+  min-width: 0;  /* prevents overflow */
+}
+
+.left {
+  padding: 60px 30px;
+  display: flex;
+  align-items: center;
+}
+
+.content {
+  max-width: 500px;
+  margin-bottom: 35%;
+}
+
+.content h1 {
+  font-size: 40px;
+  margin-bottom: 25px;
+  line-height: 1.2;
+  color: #ffffff;
+}
+
+.content p {
+  font-size: clamp(15px, 2vw, 18px);
+  color: #9ca3af;
+  line-height: 1.8;
+  margin-bottom: 35px;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.features div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 30px;
+}
+
+.formBox {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ✅ Tablet Fix (769px – 1024px) */
+@media (max-width: 1024px) {
+  .left {
+    padding: 60px 40px;
+  }
+
+  .right {
+    padding: 40px;
+  }
+}
+
+/* ✅ Mobile Layout */
+@media (max-width: 768px) {
+
+  .container {
+    flex-direction: column;
+  }
+
+  .left,
+  .right {
+    flex: 1 1 100%;
+  }
+
+  .right {
+    order: 1;
+    padding: 40px 20px;
+  }
+
+  .left {
+    order: 2;
+    padding: 40px 30px;
+    /* align-items: center;
+    text-align: center; */
+    text-align: left;
+    
+  }
+  
+  .content {
+    max-width: 100%;
+  }
+
+  /* .features {
+  
+  } */
+}

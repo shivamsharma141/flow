@@ -1,0 +1,189 @@
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #000;
+  color: #e5e7eb;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.sidebar {
+  width: 250px;
+  background: #0a0a0a;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: 0.3s ease;
+  position: relative;
+  z-index: 200;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 6px;
+  color: white;
+  text-shadow:
+    0 0 20px rgba(255,255,255,0.4),
+    0 0 40px rgba(255,255,255,0.1);
+}
+
+.closeBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.5);
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: white;
+}
+
+.nav {
+  flex: 1;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: rgba(255,255,255,0.4);
+  font-weight: 500;
+  font-size: 14px;
+  position: relative;
+  transition: all 0.25s ease;
+  border: 1px solid transparent;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  transition: 0.25s ease;
+}
+
+.link:hover {
+  background: rgba(255,255,255,0.05);
+  color: white;
+  border-color: rgba(255,255,255,0.06);
+  transform: translateX(3px);
+}
+
+.link:hover .icon {
+  color: white;
+}
+
+.active {
+  background: rgba(255,255,255,0.06);
+  color: white;
+  font-weight: 600;
+  border-color: rgba(255,255,255,0.08);
+}
+
+.active .icon {
+  color: white;
+}
+
+.active::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 8px;
+  height: calc(100% - 16px);
+  width: 3px;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(255,255,255,0.5);
+}
+
+.userSection {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.07);
+  transition: 0.2s ease;
+  margin-top: 16px;
+}
+
+.userSection:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* Clerk UserButton fix */
+.userSection :global(.cl-userButtonAvatarBox) {
+  width: 36px !important;
+  height: 36px !important;
+  border: 1.5px solid rgba(255,255,255,0.3) !important;
+  border-radius: 50% !important;
+}
+
+.main {
+  flex: 1;
+  transition: 0.3s ease;
+  background: #000;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.menuBtn {
+  display: none;
+  font-size: 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.menuBtn:hover {
+  color: white;
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100%;
+    width: 250px;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .menuBtn {
+    display: block;
+  }
+
+  .closeBtn {
+    display: block;
+  }
+
+  .main {
+    padding: 0;
+  }
+}
